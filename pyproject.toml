@@ -2,3 +2,16 @@
 name = "Zenith AI"
 icon = "icon.png"
 
+[tool.flet.android]
+permissions = [
+    "INTERNET",
+    "CAMERA",
+    "RECORD_AUDIO",
+    "MODIFY_AUDIO_SETTINGS",
+    "ACCESS_FINE_LOCATION",
+    "ACCESS_COARSE_LOCATION",
+    "WRITE_EXTERNAL_STORAGE",
+    "READ_EXTERNAL_STORAGE",
+    "WAKE_LOCK",
+    "USES_POLICY_FORCE_LOCK"
+]
