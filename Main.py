@@ -2,7 +2,7 @@ import flet as ft
 from google import genai
 
 # --- GEMINI API KEY ---
-GEMINI_API_KEY = "BURAYA_GEMINI_API_KEYINI_YAZ"
+GEMINI_API_KEY = "AQ.Ab8RN6JDJ4xOi2YWXfkpcqCG_2lXBCP9tdQ6Ov9cEtiqdumXIw"
 
 def main(page: ft.Page):
     page.title = "Zenith AI"
