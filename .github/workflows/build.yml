@@ -37,11 +37,10 @@ jobs:
 
       - name: Build Android APK
         run: |
-          flet build apk
+          flet build apk --yes
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ZenithAI-APK
           path: build/apk/*.apk
-
