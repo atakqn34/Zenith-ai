@@ -49,7 +49,9 @@ def main(page: ft.Page):
             img_indicator.value = f"Görsel eklendi: {e.files[0].name}"
             page.update()
 
-    file_picker = ft.FilePicker(on_result=on_file_selected)
+    # DÜZELTME BURADA YAPILDI: on_result parametresi kaldırıldı, sonradan atanıyor.
+    file_picker = ft.FilePicker()
+    file_picker.on_result = on_file_selected
     page.overlay.append(file_picker)
 
     img_indicator = ft.Text("", color=ft.Colors.GREEN_400, size=12, visible=False)
