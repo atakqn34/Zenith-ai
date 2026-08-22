@@ -1,0 +1,4 @@
+[tool.flet]
+name = "Zenith AI"
+icon = "icon.png"
+
