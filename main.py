@@ -2,14 +2,14 @@ import flet as ft
 from google import genai
 
 # --- GEMINI API KEY ---
-GEMINI_API_KEY = "AQ.Ab8RN6JDJ4xOi2YWXfkpcqCG_2lXBCP9tdQ6Ov9cEtiqdumXIw"
+GEMINI_API_KEY = "BURAYA_GEMINI_API_KEYINI_YAZ"
 
 def main(page: ft.Page):
     page.title = "Zenith AI"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 10
     
-    # Gemini AI İstemcisi ve Sohbet Oturumu
+    # Gemini AI İstemcisi
     client = genai.Client(api_key=GEMINI_API_KEY)
     chat = client.chats.create(model="gemini-2.5-flash")
 
@@ -30,11 +30,11 @@ def main(page: ft.Page):
             ft.Row(
                 controls=[
                     ft.Container(
-                        content=ft.Text(user_text, color=ft.Colors.WHITE),
+                        content=ft.Text(user_text, color=ft.Colors.WHITE, selectable=True),
                         bgcolor=ft.Colors.BLUE_600,
                         padding=12,
                         border_radius=15,
-                        max_width=300
+                        width=280
                     )
                 ],
                 alignment=ft.MainAxisAlignment.END
@@ -72,11 +72,11 @@ def main(page: ft.Page):
             ft.Row(
                 controls=[
                     ft.Container(
-                        content=ft.Text(bot_reply, color=ft.Colors.WHITE),
+                        content=ft.Text(bot_reply, color=ft.Colors.WHITE, selectable=True),
                         bgcolor=ft.Colors.GREY_800,
                         padding=12,
                         border_radius=15,
-                        max_width=300
+                        width=280
                     )
                 ],
                 alignment=ft.MainAxisAlignment.START
