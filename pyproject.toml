@@ -1,5 +1,6 @@
 [tool.flet]
 name = "Zenith AI"
+description = "Gelişmiş Yapay Zeka Asistanı"
 icon = "icon.png"
 
 [tool.flet.android]
@@ -12,6 +13,5 @@ permissions = [
     "ACCESS_COARSE_LOCATION",
     "WRITE_EXTERNAL_STORAGE",
     "READ_EXTERNAL_STORAGE",
-    "WAKE_LOCK",
-    "USES_POLICY_FORCE_LOCK"
+    "WAKE_LOCK"
 ]
