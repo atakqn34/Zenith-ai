@@ -1,10 +1,9 @@
 import flet as ft
 from google import genai
 from google.genai import types
-import urllib.parse
 
 # --- GEMINI API KEY ---
-GEMINI_API_KEY = "AQ.Ab8RN6JDJ4xOi2YWXfkpcqCG_2lXBCP9tdQ6Ov9cEtiqdumXIw"
+GEMINI_API_KEY = "BURAYA_GEMINI_API_KEYINI_YAZ"
 
 def main(page: ft.Page):
     page.title = "Zenith AI"
@@ -14,46 +13,32 @@ def main(page: ft.Page):
     # Gemini AI İstemcisi ve Sistem Talimatı
     client = genai.Client(api_key=GEMINI_API_KEY)
     
-    # Sohbet Oturumu (Sistem Kişiliği İle)
+    # Sohbet Oturumu
     chat = client.chats.create(
         model="gemini-2.5-flash",
         config=types.GenerateContentConfig(
-            system_instruction="Sen Zenith AI adında gelişmiş, yardımsever, bilgili ve samimi bir yapay zeka asistanısın. Kullanıcıya her konuda en doğru, açıklayıcı ve akıllı bilgiyi sunarsın."
+            system_instruction="Sen Zenith AI adında gelişmiş, yardımsever, bilgili ve samimi bir yapay zeka asistanısın."
         )
     )
 
-    # Seçilen Görsel Verisi (Bytes)
     selected_image_bytes = None
 
-    # Ses Oynatıcı Bileşeni
-    audio_player = ft.Audio(autoplay=True)
-    page.overlay.append(audio_player)
-
-    # Mesaj Liste Kutusu
     chat_list = ft.ListView(
         expand=True,
         spacing=10,
         auto_scroll=True
     )
 
-    def sesi_cal(metin):
-        # Metni Türkçe ses dosyası bağlantısına dönüştürür
-        encoded_text = urllib.parse.quote(metin[:300])
-        tts_url = f"https://translate.google.com/translate_tts?ie=UTF-8&q={encoded_text}&tl=tr&client=tw-ob"
-        audio_player.src = tts_url
-        audio_player.update()
-
     def cihaz_komut_kontrol(komut):
         komut_lower = komut.lower()
         if "hey zenith" in komut_lower:
             return "Dinliyorum, sizin için buradayım!"
         elif "telefonu kilitle" in komut_lower or "ekranı kapat" in komut_lower:
-            return "[SİSTEM]: Cihazı kilitleme komutu simüle edildi (Android güvenlik politikaları gereği doğrudan kilitlenemez)."
+            return "[SİSTEM]: Cihazı kilitleme komutu simüle edildi."
         elif "ekranı aç" in komut_lower or "kilidi aç" in komut_lower:
             return "[SİSTEM]: Ekran kilidi kaldırma komutu güvenlik duvarı nedeniyle engellendi."
         return None
 
-    # Dosya Seçici (Görsel Yüklemek İçin)
     def on_file_selected(e: ft.FilePickerResultEvent):
         nonlocal selected_image_bytes
         if e.files and len(e.files) > 0:
@@ -76,7 +61,6 @@ def main(page: ft.Page):
         if not user_text and not selected_image_bytes:
             return
 
-        # Kullanıcı Mesaj Arayüzü
         msg_controls = []
         if selected_image_bytes:
             msg_controls.append(ft.Text("🖼️ [Görsel Gönderildi]", color=ft.Colors.LIGHT_BLUE_200, italic=True))
@@ -102,7 +86,6 @@ def main(page: ft.Page):
         img_indicator.visible = False
         page.update()
 
-        # Düşünüyor Balonu
         loading_msg = ft.Row(
             controls=[
                 ft.Container(
@@ -117,7 +100,6 @@ def main(page: ft.Page):
         chat_list.controls.append(loading_msg)
         page.update()
 
-        # Özel Cihaz Komut Kontrolü
         ozel_yanit = cihaz_komut_kontrol(user_text) if user_text else None
 
         try:
@@ -141,7 +123,6 @@ def main(page: ft.Page):
         except Exception as err:
             bot_reply = f"Hata oluştu: {err}"
 
-        # Düşünüyor Balonunu Kaldır ve Cevabı Ekle
         chat_list.controls.remove(loading_msg)
         chat_list.controls.append(
             ft.Row(
@@ -159,13 +140,6 @@ def main(page: ft.Page):
         )
         page.update()
 
-        # Yanıtı Sesli Oku
-        try:
-            sesi_cal(bot_reply)
-        except Exception as err:
-            print(f"Ses çalma hatası: {err}")
-
-    # Alt Giriş Alanı ve Butonlar
     input_box = ft.TextField(
         hint_text="Mesaj yazın veya fotoğraf yükleyin...",
         expand=True,
@@ -186,7 +160,6 @@ def main(page: ft.Page):
         on_click=mesaj_gonder
     )
 
-    # Arayüz Düzeni
     page.add(
         ft.AppBar(
             title=ft.Text("Zenith AI", weight=ft.FontWeight.BOLD),
