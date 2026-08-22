@@ -4,6 +4,7 @@ description = "Gelişmiş Yapay Zeka Asistanı"
 icon = "icon.png"
 
 [tool.flet.android]
+package_name = "com.zenith.ai"
 permissions = [
     "INTERNET",
     "CAMERA",
