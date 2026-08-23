@@ -1,18 +1,12 @@
-[tool.flet]
-name = "Zenith AI"
-description = "Gelişmiş Yapay Zeka Asistanı"
-icon = "icon.png"
-
-[tool.flet.android]
-package_name = "com.zenith.ai"
-permissions = [
-    "INTERNET",
-    "CAMERA",
-    "RECORD_AUDIO",
-    "MODIFY_AUDIO_SETTINGS",
-    "ACCESS_FINE_LOCATION",
-    "ACCESS_COARSE_LOCATION",
-    "WRITE_EXTERNAL_STORAGE",
-    "READ_EXTERNAL_STORAGE",
-    "WAKE_LOCK"
+[project]
+name = "zenith_ai"
+version = "1.0.0"
+dependencies = [
+    "flet>=0.20.0"
 ]
+
+[tool.flet.app]
+product = "Zenith-ai"
+company = "Atakan"
+copyright = "Copyright (C) 2026"
+icon = "icon.png"
