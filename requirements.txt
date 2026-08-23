@@ -1,2 +1,1 @@
-flet
-google-genai
+flet>=0.20.0
