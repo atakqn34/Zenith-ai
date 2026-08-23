@@ -1,176 +1,153 @@
+import os
 import flet as ft
 from google import genai
 from google.genai import types
 
-# --- GEMINI API KEY ---
-GEMINI_API_KEY = "AQ.Ab8RN6JDJ4xOi2YWXfkpcqCG_2lXBCP9tdQ6Ov9cEtiqdumXIw"
+# Gemini API Anahtarını buraya ekliyoruz
+# (Kendi API anahtarını buraya yazabilirsin)
+GEMINI_API_KEY = "BURAYA_API_ANAHTARINI_YAZ"
 
 def main(page: ft.Page):
     page.title = "Zenith AI"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 10
-    
-    # Gemini AI İstemcisi ve Sistem Talimatı
-    client = genai.Client(api_key=GEMINI_API_KEY)
-    
-    # Sohbet Oturumu
-    chat = client.chats.create(
-        model="gemini-2.5-flash",
-        config=types.GenerateContentConfig(
-            system_instruction="Sen Zenith AI adında gelişmiş, yardımsever, bilgili ve samimi bir yapay zeka asistanısın."
-        )
-    )
+    page.vertical_alignment = ft.MainAxisAlignment.END
 
+    # Gemini İstemcisini Başlatma
+    client = None
+    chat_session = None
+    
+    try:
+        if GEMINI_API_KEY and GEMINI_API_KEY != "BURAYA_API_ANAHTARINI_YAZ":
+            client = genai.Client(api_key=GEMINI_API_KEY)
+            chat_session = client.chats.create(model="gemini-2.5-flash")
+    except Exception as e:
+        print(f"API Başlatma Hatası: {e}")
+
+    # Seçilen görselin verilerini tutacak değişken
     selected_image_bytes = None
+    selected_image_name = ft.Text("Görsel seçilmedi", size=12, italic=True, color=ft.colors.GREY_400)
 
-    chat_list = ft.ListView(
-        expand=True,
-        spacing=10,
-        auto_scroll=True
-    )
+    # Mesajların listeleneceği alan
+    chat_list = ft.ListView(expand=True, spacing=10, auto_scroll=True)
 
-    def cihaz_komut_kontrol(komut):
-        komut_lower = komut.lower()
-        if "hey zenith" in komut_lower:
-            return "Dinliyorum, sizin için buradayım!"
-        elif "telefonu kilitle" in komut_lower or "ekranı kapat" in komut_lower:
-            return "[SİSTEM]: Cihazı kilitleme komutu simüle edildi."
-        elif "ekranı aç" in komut_lower or "kilidi aç" in komut_lower:
-            return "[SİSTEM]: Ekran kilidi kaldırma komutu güvenlik duvarı nedeniyle engellendi."
-        return None
-
+    # Görsel Seçildiğinde Çalışacak Fonksiyon
     def on_file_selected(e: ft.FilePickerResultEvent):
         nonlocal selected_image_bytes
         if e.files and len(e.files) > 0:
             file_path = e.files[0].path
-            with open(file_path, "rb") as f:
-                selected_image_bytes = f.read()
-            img_indicator.visible = True
-            img_indicator.value = f"Görsel eklendi: {e.files[0].name}"
-            page.update()
+            selected_image_name.value = f"Seçilen: {e.files[0].name}"
+            selected_image_name.update()
+            
+            try:
+                with open(file_path, "rb") as f:
+                    selected_image_bytes = f.read()
+            except Exception as ex:
+                selected_image_name.value = "Görsel okunamadı!"
+                selected_image_name.update()
 
-    # DÜZELTME BURADA YAPILDI: on_result parametresi kaldırıldı, sonradan atanıyor.
-    file_picker = ft.FilePicker()
-    file_picker.on_result = on_file_selected
+    # FilePicker Nesnesi ve OVERLAY Hatası Çözümü (page.overlay içine ekleniyor)
+    file_picker = ft.FilePicker(on_result=on_file_selected)
     page.overlay.append(file_picker)
+    page.update()
 
-    img_indicator = ft.Text("", color=ft.Colors.GREEN_400, size=12, visible=False)
-
-    def mesaj_gonder(e):
-        nonlocal selected_image_bytes
-        user_text = input_box.value.strip()
-        
+    # Mesaj Gönderme Fonksiyonu
+    def send_message(e):
+        user_text = message_input.value.strip()
         if not user_text and not selected_image_bytes:
             return
 
-        msg_controls = []
-        if selected_image_bytes:
-            msg_controls.append(ft.Text("🖼️ [Görsel Gönderildi]", color=ft.Colors.LIGHT_BLUE_200, italic=True))
-        if user_text:
-            msg_controls.append(ft.Text(user_text, color=ft.Colors.WHITE, selectable=True))
-
+        # Kullanıcı mesajını ekrana ekle
         chat_list.controls.append(
             ft.Row(
-                controls=[
+                [
                     ft.Container(
-                        content=ft.Column(controls=msg_controls, spacing=5),
-                        bgcolor=ft.Colors.BLUE_600,
-                        padding=12,
-                        border_radius=15,
-                        width=280
+                        content=ft.Text(user_text if user_text else "[Görsel Gönderildi]", color=ft.colors.WHITE),
+                        bgcolor=ft.colors.BLUE_900,
+                        padding=10,
+                        border_radius=8,
+                        max_width=250
                     )
                 ],
                 alignment=ft.MainAxisAlignment.END
             )
         )
         
-        input_box.value = ""
-        img_indicator.visible = False
-        page.update()
+        current_input = user_text
+        message_input.value = ""
+        message_input.update()
+        chat_list.update()
 
-        loading_msg = ft.Row(
-            controls=[
-                ft.Container(
-                    content=ft.Text("Zenith AI düşünüyor...", color=ft.Colors.GREY_400, italic=True),
-                    bgcolor=ft.Colors.GREY_800,
-                    padding=12,
-                    border_radius=15,
-                )
-            ],
-            alignment=ft.MainAxisAlignment.START
+        # Asistanın yanıt alanı (Yükleniyor efekti için)
+        ai_response_text = ft.Text("Düşünüyor...", color=ft.colors.WHITE)
+        ai_container = ft.Container(
+            content=ai_response_text,
+            bgcolor=ft.colors.GREY_800,
+            padding=10,
+            border_radius=8,
+            max_width=250
         )
-        chat_list.controls.append(loading_msg)
-        page.update()
+        
+        ai_row = ft.Row([ai_container], alignment=ft.MainAxisAlignment.START)
+        chat_list.controls.append(ai_row)
+        chat_list.update()
 
-        ozel_yanit = cihaz_komut_kontrol(user_text) if user_text else None
-
+        # Gemini'ye istek atma
         try:
-            if ozel_yanit:
-                bot_reply = ozel_yanit
-            elif selected_image_bytes:
+            if not client or not chat_session:
+                ai_response_text.value = "Hata: API anahtarı tanımlanmamış!"
+                ai_container.update()
+                return
+
+            contents = []
+            if selected_image_bytes:
                 image_part = types.Part.from_bytes(
                     data=selected_image_bytes,
-                    mime_type="image/jpeg"
+                    mime_type="image/jpeg",
                 )
-                prompt = user_text if user_text else "Bu görseli detaylıca analiz et ve açıkla."
-                response = client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=[image_part, prompt]
-                )
+                contents.append(image_part)
+                # Gönderildikten sonra sıfırla
                 selected_image_bytes = None
-                bot_reply = response.text
-            else:
-                response = chat.send_message(user_text)
-                bot_reply = response.text
-        except Exception as err:
-            bot_reply = f"Hata oluştu: {err}"
+                selected_image_name.value = "Görsel seçilmedi"
+                selected_image_name.update()
 
-        chat_list.controls.remove(loading_msg)
-        chat_list.controls.append(
-            ft.Row(
-                controls=[
-                    ft.Container(
-                        content=ft.Text(bot_reply, color=ft.Colors.WHITE, selectable=True),
-                        bgcolor=ft.Colors.GREY_800,
-                        padding=12,
-                        border_radius=15,
-                        width=280
-                    )
-                ],
-                alignment=ft.MainAxisAlignment.START
-            )
-        )
-        page.update()
+            if current_input:
+                contents.append(current_input)
 
-    input_box = ft.TextField(
-        hint_text="Mesaj yazın veya fotoğraf yükleyin...",
+            # Gemini'den yanıt al
+            response = chat_session.send_message(contents)
+            ai_response_text.value = response.text
+        except Exception as ex:
+            ai_response_text.value = f"Bir hata oluştu: {str(ex)}"
+        
+        ai_container.update()
+
+    # Giriş ve Buton Bileşenleri
+    message_input = ft.TextField(
+        hint_text="Mesajınızı yazın...",
         expand=True,
-        border_radius=20,
-        autofocus=True,
-        on_submit=mesaj_gonder
+        border_radius=8,
+        on_submit=send_message
     )
-    
-    attach_btn = ft.IconButton(
-        icon=ft.Icons.IMAGE_ROUNDED,
-        icon_color=ft.Colors.GREEN_400,
-        on_click=lambda _: file_picker.pick_files(allow_multiple=False, file_type=ft.FilePickerFileType.IMAGE)
+
+    upload_btn = ft.IconButton(
+        icon=ft.icons.IMAGE,
+        tooltip="Görsel Seç",
+        on_click=lambda _: file_picker.pick_files(allowed_extensions=["png", "jpg", "jpeg"])
     )
 
     send_btn = ft.IconButton(
-        icon=ft.Icons.SEND_ROUNDED,
-        icon_color=ft.Colors.BLUE_400,
-        on_click=mesaj_gonder
+        icon=ft.icons.SEND,
+        tooltip="Gönder",
+        on_click=send_message
     )
 
+    # Arayüz Yerleşimi
     page.add(
-        ft.AppBar(
-            title=ft.Text("Zenith AI", weight=ft.FontWeight.BOLD),
-            center_title=True,
-            bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST
-        ),
         chat_list,
-        img_indicator,
-        ft.Row(controls=[attach_btn, input_box, send_btn])
+        selected_image_name,
+        ft.Row([upload_btn, message_input, send_btn], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
     )
 
 ft.app(target=main)
+
